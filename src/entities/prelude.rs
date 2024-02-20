@@ -2,3 +2,5 @@
 
 pub use super::author::Entity as Author;
 pub use super::post::Entity as Post;
+pub use super::post_tag::Entity as PostTag;
+pub use super::tag::Entity as Tag;
