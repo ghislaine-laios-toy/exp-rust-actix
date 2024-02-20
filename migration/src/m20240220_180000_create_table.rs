@@ -108,6 +108,9 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
+            .drop_table(Table::drop().table(PostTag::Table).to_owned())
+            .await?;
+        manager
             .drop_table(Table::drop().table(Post::Table).to_owned())
             .await?;
         manager
@@ -118,9 +121,6 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .drop_table(Table::drop().table(Tag::Table).to_owned())
-            .await?;
-        manager
-            .drop_table(Table::drop().table(PostTag::Table).to_owned())
             .await
     }
 }

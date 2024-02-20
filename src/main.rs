@@ -1,6 +1,10 @@
 use std::env;
-use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
+
+use actix_web::{App, get, HttpResponse, HttpServer, Responder, web};
+use log::{error, info};
 use sea_orm::Database;
+
+use migration::MigratorTrait;
 
 #[tokio::main]
 async fn main() {
@@ -9,9 +13,18 @@ async fn main() {
 
     let db_url = env::var("DATABASE_URL").expect("Environment variable DATABASE_URL is not set");
 
-    let db_coon = Database::connect(&db_url).await.expect("Can't connect to the database");
+    let db_coon = Database::connect(&db_url)
+        .await
+        .expect("Can't connect to the database");
 
     db_coon.ping().await.expect("Failed to ping the database");
+
+    // TODO: https://www.sea-ql.org/SeaORM/docs/migration/running-migration/#checking-migration-status
+    let applied_migrations = migration::Migrator::get_applied_migrations(&db_coon)
+        .await
+        .expect("Failed to get applied migrations");
+
+    error!("{:}", &applied_migrations.len());
 
     HttpServer::new(|| {
         App::new()
@@ -21,11 +34,11 @@ async fn main() {
             .wrap(actix_web::middleware::Logger::default())
             .service(hello)
     })
-        .bind(("127.0.0.1", 8067))
-        .unwrap()
-        .run()
-        .await
-        .unwrap();
+    .bind(("127.0.0.1", 8067))
+    .unwrap()
+    .run()
+    .await
+    .unwrap();
 }
 
 #[get("/hello")]
