@@ -1,0 +1,16 @@
+name: exp-rust-actix
+services:
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: example
+    ports:
+      - 127.0.0.1:8002:5432
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - 127.0.0.1:8003:6379
