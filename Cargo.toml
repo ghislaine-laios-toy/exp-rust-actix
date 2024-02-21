@@ -17,3 +17,5 @@ log = "0.4.20"
 sea-orm = { version = "0.12.14", features = ["sqlx-postgres", "runtime-tokio-native-tls", "macros", "debug-print"] }
 tokio = { version = "1.0.0", features = ["rt", "rt-multi-thread", "macros"] }
 migration = { path = "migration" }
+anyhow = "1.0.80"
+thiserror = "1.0.57"
