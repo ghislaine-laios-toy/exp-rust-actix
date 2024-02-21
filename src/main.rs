@@ -1,9 +1,11 @@
 use std::env;
 
-use actix_web::{App, get, HttpResponse, HttpServer, Responder, web};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use anyhow::{anyhow, Context};
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::Database;
+use exp_rust_actix::app_state::AppState;
 
+use exp_rust_actix::services;
 use migration::{Migrator, MigratorTrait};
 
 #[tokio::main]
@@ -33,17 +35,20 @@ async fn main() -> anyhow::Result<()> {
         return Err(anyhow!("Pending migrations await application."));
     }
 
-    HttpServer::new(|| {
+    let app_state = web::Data::new(AppState {
+        app_name: "actix demo".to_string(),
+        db_coon,
+    });
+
+    HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(AppState {
-                app_name: "actix demo".to_string(),
-                db_coon,
-            }))
+            .app_data(app_state.clone())
             .wrap(actix_web::middleware::Logger::default())
             .service(hello)
+            .configure(services::author::init)
     })
-    .bind(("127.0.0.1", 8067))
-    .context("Fail to bind to 127.0.0.1:8067")?
+    .bind(("127.0.0.1", 8001))
+    .context("Fail to bind to 127.0.0.1:8001")?
     .run()
     .await
     .unwrap();
@@ -56,7 +61,3 @@ async fn hello(app_state: web::Data<AppState>) -> impl Responder {
     HttpResponse::Ok().body(format!("Hello world! This is {}.", &app_state.app_name))
 }
 
-struct AppState {
-    pub app_name: String,
-    pub db_coon: DatabaseConnection,
-}
