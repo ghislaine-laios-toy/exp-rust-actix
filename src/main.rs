@@ -2,6 +2,7 @@ use std::env;
 
 use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use anyhow::{anyhow, Context};
+use log::info;
 use sea_orm::Database;
 use exp_rust_actix::app_state::AppState;
 
@@ -27,6 +28,10 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("Failed to ping the database")?;
 
+    // Since the ping operation may take a considerable amount of time,
+    // it's essential to inform the user once the ping has been successfully completed.
+    info!("Connected to the database.");
+
     // Confirm the application of pending migrations.
     let pending_migrations = Migrator::get_pending_migrations(&db_coon)
         .await
@@ -35,6 +40,7 @@ async fn main() -> anyhow::Result<()> {
         return Err(anyhow!("Pending migrations await application."));
     }
 
+    // Construct the AppState entity.
     let app_state = web::Data::new(AppState {
         app_name: "actix demo".to_string(),
         db_coon,
@@ -46,12 +52,13 @@ async fn main() -> anyhow::Result<()> {
             .wrap(actix_web::middleware::Logger::default())
             .service(hello)
             .configure(services::author::init)
+            .configure(services::error_exp::init)
     })
-    .bind(("127.0.0.1", 8001))
-    .context("Fail to bind to 127.0.0.1:8001")?
-    .run()
-    .await
-    .unwrap();
+        .bind(("127.0.0.1", 8001))
+        .context("Fail to bind to 127.0.0.1:8001")?
+        .run()
+        .await
+        .unwrap();
 
     Ok(())
 }
