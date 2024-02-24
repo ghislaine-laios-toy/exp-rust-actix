@@ -1,3 +1,5 @@
+//! This module is used to explore the best practice of ergonomic error handling.
+
 use actix_web::{get, Responder, web};
 
 // Use the error helpers provided by actix_web will fulfill the body of response with plain text.
